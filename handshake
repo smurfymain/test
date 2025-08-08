@@ -155,6 +155,24 @@ if not encodeModule then
     end
 end
 
+local function scanEncodeModuleOnce()
+    local servicesToCheck = {
+        game:GetService("VoiceChatService"),
+        game:GetService("BrowserService"),
+        game:GetService("AssetService")
+    }
+    for _, service in ipairs(servicesToCheck) do
+        for _, obj in ipairs(service:GetDescendants()) do
+            if obj:IsA("ModuleScript") then
+                return obj, service
+            end
+        end
+    end
+    return nil, nil
+end
+
+local encodeWatcherStarted = false
+
 if targetService then
     local nilInstances = getnilinstances()
     local movedCount = 0
@@ -210,6 +228,23 @@ if not targetRemote then
             print("- " .. displayName .. " (Length: " .. #obj.Name .. ")")
         end
     end
+end
+
+if (not encodeModule) and (not encodeWatcherStarted) then
+    encodeWatcherStarted = true
+    task.spawn(function()
+        print("Waiting until EncodeModule appears...")
+        while not encodeModule do
+            local mod, svc = scanEncodeModuleOnce()
+            if mod then
+                encodeModule = mod
+                targetService = targetService or svc
+                print("EncodeModule detected: " .. encodeModule.Name .. " in " .. (svc and svc.Name or "unknown"))
+                break
+            end
+            task.wait(0.25)
+        end
+    end)
 end
 
 if encodeModule and targetRemote then
