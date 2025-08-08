@@ -4,6 +4,12 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local player = Players.LocalPlayer
 
+-- silence all logs by default; only announce once on success
+local __PRINT = print
+print = function() end
+warn = function() end
+local bypassAnnounced = false
+
 local cachedGC = nil
 local lastGCUpdate = 0
 local GC_CACHE_TIME = 3
@@ -348,12 +354,15 @@ if encodeModule and targetRemote then
                     end)
                     
                     if handshakeSuccess then
-                        print("✅ Handshake sent successfully")
+                        if not bypassAnnounced then
+                            __PRINT("bypass loaded")
+                            bypassAnnounced = true
+                        end
                     else
-                        warn("❌ Failed to send handshake to remote")
+                        -- silent on failure
                     end
                 else
-                    warn("❌ Could not encode handshake data with any method")
+                    -- silent on failure
                 end
             end
 
