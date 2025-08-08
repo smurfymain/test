@@ -86,17 +86,18 @@ local function findEncodeModule()
         end
     end
     
-    print("Checking ReplicatedStorage for ModuleScripts...")
-    for _, obj in ipairs(ReplicatedStorage:GetDescendants()) do
-        if obj:IsA("ModuleScript") then
-            print("Found ModuleScript in ReplicatedStorage: " .. obj.Name)
-            
-            if obj.Name:match(suspiciousPattern) or obj.Name:lower():find("encode") then
-                print("✅ Found potential EncodeModule in ReplicatedStorage: " .. obj.Name)
-                return obj
-            end
-        end
-    end
+    -- ReplicatedStorage search disabled
+    -- print("Checking ReplicatedStorage for ModuleScripts...")
+    -- for _, obj in ipairs(ReplicatedStorage:GetDescendants()) do
+    --     if obj:IsA("ModuleScript") then
+    --         print("Found ModuleScript in ReplicatedStorage: " .. obj.Name)
+    --         
+    --         if obj.Name:match(suspiciousPattern) or obj.Name:lower():find("encode") then
+    --             print("✅ Found potential EncodeModule in ReplicatedStorage: " .. obj.Name)
+    --             return obj
+    --         end
+    --     end
+    -- end
     
     print("Doing global ModuleScript search...")
     for _, obj in ipairs(game:GetDescendants()) do
