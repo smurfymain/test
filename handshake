@@ -4,73 +4,25 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local player = Players.LocalPlayer
 
-local cachedGC = nil
-local lastGCUpdate = 0
-local GC_CACHE_TIME = 3
-
-local function getCachedGC()
-    local currentTime = tick()
-    if not cachedGC or (currentTime - lastGCUpdate) > GC_CACHE_TIME then
-        cachedGC = getgc(true)
-        lastGCUpdate = currentTime
-    end
-    return cachedGC
-end
-
 if not is_synapse_function then
     function is_synapse_function(_)
         return false
     end
 end
 
-local function blockTargetFunctions()
-    local gcList = getCachedGC()
-    local targetPatterns = {"cvSCVfv", "jdvs_dvcddv"}
-    
-    for _, obj in ipairs(gcList) do
-        if type(obj) == "function" and not is_synapse_function(obj) then
-            local blocked = false
-            
-            -- Check upvalues for target patterns
-            local upvalueIndex = 1
-            while true do
-                local success, name, value = pcall(debug.getupvalue, obj, upvalueIndex)
-                if not success or not name then break end
-                
-                if type(value) == "string" then
-                    for _, pattern in ipairs(targetPatterns) do
-                        if value:find(pattern) then
-                            local hookSuccess = pcall(hookfunction, obj, function() return nil end)
-                            if hookSuccess then blocked = true end
-                            break
-                        end
-                    end
-                    if blocked then break end
-                end
-                upvalueIndex = upvalueIndex + 1
-            end
-            
-            -- Check constants for target patterns
-            if not blocked then
-                local success, constants = pcall(debug.getconstants, obj)
-                if success and constants then
-                    for _, constant in ipairs(constants) do
-                        if type(constant) == "string" then
-                            for _, pattern in ipairs(targetPatterns) do
-                                if constant:find(pattern) then
-                                    pcall(hookfunction, obj, function() return nil end)
-                                    break
-                                end
-                            end
-                        end
-                    end
-                end
-            end
+local targets = {
+    ["cvSCVfv"] = true,
+    ["jdvs_dvcddv"] = true,
+}
+
+for _, func in next, getgc(true) do
+    if typeof(func) == "function" and not is_synapse_function(func) then
+        local info = debug.getinfo(func)
+        if info and targets[info.name] then
+            hookfunction(func, function(...) return nil end)
         end
     end
 end
-
-blockTargetFunctions()
 
 local services = {
     game:GetService("VoiceChatService"),
