@@ -272,6 +272,8 @@ if encodeModule and targetRemote then
                 task.wait(2)
                 emulateHandshake()
             end)
+            
+
         end
     end
 end
